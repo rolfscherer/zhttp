@@ -1,0 +1,12 @@
+{
+    "server": {
+        "name": "test",
+        "ipv4": {
+            "address": "127.0.0.1",
+            "port": 8080
+        }
+    },
+    "http": {
+        "max_header_size": 32768
+    }
+}
