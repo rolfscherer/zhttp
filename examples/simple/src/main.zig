@@ -40,18 +40,22 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 12 }){};
     const allocator = gpa.allocator();
 
-    var server = http_server.HttpServer.init(allocator);
-    errdefer server.killServer();
+    zhttp.utils.readFileTillDelimiter(allocator, "examples/templates/body.html") catch |err| {
+        std.log.info("{any}", .{err});
+    };
 
-    const builder = router.Builder(*Context);
+    // var server = http_server.HttpServer.init(allocator);
+    // errdefer server.killServer();
 
-    try server.startServer(
-        "examples/simple/config.json",
-        &context,
-        comptime router.router(*Context, &.{
-            builder.get("/hello/:name", hello),
-        }),
-    );
+    // const builder = router.Builder(*Context);
+
+    // try server.startServer(
+    //     "examples/simple/config.json",
+    //     &context,
+    //     comptime router.router(*Context, &.{
+    //         builder.get("/hello/:name", hello),
+    //     }),
+    // );
 }
 
 test {
