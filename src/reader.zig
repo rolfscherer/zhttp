@@ -14,6 +14,7 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
     return struct {
         allocator: Allocator,
         array: FileInfos,
+        dir: std.fs.Dir,
         cfi: ?*FileInfo = null,
         buf: [buffer_size]u8 = undefined,
         start: usize = 0,
@@ -92,7 +93,7 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
                     idx += 1;
                 }
 
-                const file = std.fs.cwd().openFile(exp[start..end], .{}) catch |err| {
+                const file = self.dir.openFile(exp[start..end], .{}) catch |err| {
                     std.log.info("Error: '{any}'", .{err});
                     return error.UnexpectedError;
                 };
@@ -145,7 +146,7 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
                 return error.UnexpectedError;
             }
             var size: usize = 0;
-            for (0..buffer_size) |_| {
+            while (size < (buffer_size - 1)) { // -1 for byteAhead
                 var byte: u8 = try self.readByte();
                 if (byte == 0) {
                     return size;
@@ -163,7 +164,6 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
                         // We have an expression
                         try self.readExpression();
                     } else {
-                        // TODO support {{% expression %}}
                         // No expression, write bytes that have already been consumed to the buffer
                         self.buf[size] = byte;
                         size += 1;
@@ -203,8 +203,10 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
             return dest.len;
         }
 
-        pub fn init(allocator: Allocator, sub_path: []const u8) !Self {
-            const file = try std.fs.cwd().openFile(sub_path, .{});
+        pub fn init(allocator: Allocator, template_path: []const u8, file_name: []const u8) !Self {
+            const dir = try std.fs.cwd().openDir(template_path, .{});
+
+            const file = try dir.openFile(file_name, .{});
             var fr = file.reader();
 
             var fi: FileInfo = .{
@@ -214,10 +216,11 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
 
             var array = FileInfos.init(allocator);
             try array.append(fi);
-            return .{ .allocator = allocator, .array = array };
+            return .{ .allocator = allocator, .array = array, .dir = dir };
         }
 
         pub fn deinit(self: *Self) void {
+            self.dir.close();
             self.array.deinit();
         }
 
@@ -227,12 +230,12 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
     };
 }
 
-pub fn templateReader(allocator: Allocator, sub_path: []const u8) !TemplateReader(8 * 1024, fs.File.Reader) {
-    return bufferedReaderSize(allocator, sub_path, 8 * 1024);
+pub fn templateReader(allocator: Allocator, template_path: []const u8, file_name: []const u8) !TemplateReader(8 * 1024, fs.File.Reader) {
+    return bufferedReaderSize(allocator, template_path, file_name, 8 * 1024);
 }
 
-pub fn bufferedReaderSize(allocator: Allocator, sub_path: []const u8, comptime size: usize) !TemplateReader(size, fs.File.Reader) {
-    return TemplateReader(size, fs.File.Reader).init(allocator, sub_path);
+pub fn bufferedReaderSize(allocator: Allocator, template_path: []const u8, file_name: []const u8, comptime size: usize) !TemplateReader(size, fs.File.Reader) {
+    return TemplateReader(size, fs.File.Reader).init(allocator, template_path, file_name);
 }
 
 test "refAllDecls" {

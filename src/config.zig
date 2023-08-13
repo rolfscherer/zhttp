@@ -5,15 +5,14 @@ const mem = std.mem;
 const Allocator = mem.Allocator;
 const ParseConfig = json.Parsed(Config);
 
-pub const Config = struct {
-    server: struct { name: []const u8, ipv4: struct {
-        address: []const u8,
-        port: u16,
-    } },
-    http: struct {
-        max_header_size: u16,
-    },
-};
+pub const Config = struct { server: struct { name: []const u8, ipv4: struct {
+    address: []const u8,
+    port: u16,
+} }, http: struct {
+    max_header_size: u16,
+}, template: struct {
+    sub_path: []const u8 = "",
+} };
 
 pub const ServerConfig = struct {
     allocator: Allocator,

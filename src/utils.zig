@@ -4,8 +4,8 @@ const mem = std.mem;
 const Allocator = mem.Allocator;
 const tr = @import("reader.zig");
 
-pub fn readFileTillDelimiter(allocator: Allocator, sub_path: []const u8) !void {
-    var reader = try tr.templateReader(allocator, sub_path);
+pub fn readFileTillDelimiter(allocator: Allocator, template_path: []const u8, file_name: []const u8) !void {
+    var reader = try tr.templateReader(allocator, template_path, file_name);
     var buf: [8 * 1024]u8 = undefined;
     const stdout_file = std.io.getStdOut().writer();
     try stdout_file.writeByte('\n');

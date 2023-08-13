@@ -8,5 +8,8 @@
     },
     "http": {
         "max_header_size": 32768
+    },
+    "template": {
+        "sub_path": "examples/templates"
     }
 }
