@@ -68,12 +68,8 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
                 var end: usize = 0;
                 var idx = start;
 
-                while (idx < exp.len) {
-                    if (!ascii.isWhitespace(exp[idx])) {
-                        break;
-                    }
-
-                    idx += 1;
+                while (idx < exp.len) : (idx += 1) {
+                    if (!ascii.isWhitespace(exp[idx])) break;
                 }
 
                 if (exp[idx] != '"') {
@@ -203,9 +199,7 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
             return dest.len;
         }
 
-        pub fn init(allocator: Allocator, template_path: []const u8, file_name: []const u8) !Self {
-            const dir = try std.fs.cwd().openDir(template_path, .{});
-
+        pub fn init(allocator: Allocator, dir: fs.Dir, file_name: []const u8) !Self {
             const file = try dir.openFile(file_name, .{});
             var fr = file.reader();
 
@@ -230,12 +224,12 @@ pub fn TemplateReader(comptime buffer_size: usize, comptime ReaderType: type) ty
     };
 }
 
-pub fn templateReader(allocator: Allocator, template_path: []const u8, file_name: []const u8) !TemplateReader(8 * 1024, fs.File.Reader) {
-    return bufferedReaderSize(allocator, template_path, file_name, 8 * 1024);
+pub fn templateReader(allocator: Allocator, dir: fs.Dir, file_name: []const u8) !TemplateReader(8 * 1024, fs.File.Reader) {
+    return bufferedReaderSize(allocator, dir, file_name, 8 * 1024);
 }
 
-pub fn bufferedReaderSize(allocator: Allocator, template_path: []const u8, file_name: []const u8, comptime size: usize) !TemplateReader(size, fs.File.Reader) {
-    return TemplateReader(size, fs.File.Reader).init(allocator, template_path, file_name);
+pub fn bufferedReaderSize(allocator: Allocator, dir: fs.Dir, file_name: []const u8, comptime size: usize) !TemplateReader(size, fs.File.Reader) {
+    return TemplateReader(size, fs.File.Reader).init(allocator, dir, file_name);
 }
 
 test "refAllDecls" {
