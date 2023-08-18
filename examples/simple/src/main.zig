@@ -34,7 +34,10 @@ fn serveFiles(ctx: *Context, response: *http.Server.Response) !void {
 }
 
 fn serveTemplates(ctx: *Context, response: *http.Server.Response) !void {
-    _ = ctx;
+    if (!std.mem.endsWith(u8, response.request.target, "html") and !std.mem.endsWith(u8, response.request.target, "/")) {
+        return try serveFiles(ctx, response);
+    }
+
     if (ts) |*s| {
         s.serve(response) catch |err| {
             std.log.err("Unexpected error {any}", .{err});
@@ -76,7 +79,7 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 12 }){};
     const allocator = gpa.allocator();
 
-    fs = FileServer.init(allocator, "examples/static");
+    fs = FileServer.init(allocator, "examples/static", null);
     if (fs) |*s| {
         defer s.deinit();
     }
@@ -96,8 +99,11 @@ pub fn main() !void {
         &context,
         comptime router.router(*Context, &.{
             builder.get("/hello/:name", hello),
+            builder.get("/assets/*", serveFiles),
+            builder.get("/css/*", serveFiles),
+            builder.get("/js/*", serveFiles),
             builder.get("/*", serveTemplates),
-            builder.get("/static/*", serveFiles),
+            builder.get("/", serveTemplates),
         }),
     );
 }

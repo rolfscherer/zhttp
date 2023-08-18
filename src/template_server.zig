@@ -4,7 +4,7 @@ const http = std.http;
 const mem = std.mem;
 
 const Allocator = mem.Allocator;
-const tr = @import("reader.zig");
+const tr = @import("template_reader.zig");
 
 pub const TemplateServer = @This();
 const mime_types = @import("mime_types.zig");

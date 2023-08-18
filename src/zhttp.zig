@@ -8,10 +8,11 @@ pub const template_server = @import("template_server.zig");
 
 test {
     _ = @import("config.zig");
+    _ = @import("date.zig");
     _ = @import("file_server.zig");
     _ = @import("http_server.zig");
     _ = @import("mime_types.zig");
-    _ = @import("reader.zig");
+    _ = @import("template_reader.zig");
     _ = @import("trie.zig");
     _ = @import("template_server.zig");
 }

@@ -3,7 +3,7 @@ const http = std.http;
 const mime_types = @import("mime_types.zig");
 const Allocator = std.mem.Allocator;
 const fs = std.fs;
-//const fmtDate = @import("date.zig").fmtDate;
+const fmtDate = @import("date.zig").fmtDate;
 const router = @import("router.zig");
 
 pub const FileServer = @This();
@@ -11,16 +11,18 @@ pub const FileServer = @This();
 dir: fs.Dir = undefined,
 alloc: Allocator = undefined,
 dir_sub_path: []const u8 = undefined,
+base_path: ?[]const u8 = null,
 initialized: bool = false,
 
 pub const ServeError = error{
     NotAFile,
 };
 
-pub fn init(allocator: Allocator, dir_sub_path: []const u8) FileServer {
+pub fn init(allocator: Allocator, dir_sub_path: []const u8, base_path: ?[]const u8) FileServer {
     return .{
         .alloc = allocator,
         .dir_sub_path = dir_sub_path,
+        .base_path = base_path,
     };
 }
 
@@ -37,6 +39,13 @@ pub fn serve(self: *FileServer, response: *http.Server.Response) !void {
     }
 
     var path = response.request.target;
+
+    if (self.base_path) |base_path| {
+        if (std.mem.startsWith(u8, path[1..], base_path)) {
+            path = path[base_path.len + 1 ..];
+        }
+    }
+
     if (path[0] == '/') path = path[1..];
 
     // Only files in the dir path can be accessed
@@ -84,7 +93,7 @@ pub fn serveFile(
     try response.headers.append("content-type", mime_types.fromFileName(file_name));
 
     var buf: [1024 * 8]u8 = undefined;
-    //try response.headers.append("last-modified", try std.fmt.bufPrint(&buf, "{}", fmtDate(stat.mtime)));
+    try response.headers.append("last-modified", try std.fmt.bufPrint(&buf, "{}", fmtDate(stat.mtime)));
 
     try response.do();
 
