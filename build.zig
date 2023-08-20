@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) void {
 
     // Examples
     const simple_example = b.addExecutable(.{
-        .name = "example",
+        .name = "simple_httpserver",
         .root_source_file = .{ .path = "examples/simple/src/main.zig" },
         .target = target,
         .optimize = optimize,
@@ -27,7 +27,18 @@ pub fn build(b: *std.Build) void {
 
     simple_example.addModule("zhttp", zhttp_module);
     b.installArtifact(simple_example);
-    const run_cmd = b.addRunArtifact(simple_example);
+
+    const rest_example = b.addExecutable(.{
+        .name = "rest_httpserver",
+        .root_source_file = .{ .path = "examples/rest/src/main.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    rest_example.addModule("zhttp", zhttp_module);
+    b.installArtifact(rest_example);
+
+    const run_cmd = b.addRunArtifact(rest_example);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);

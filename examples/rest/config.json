@@ -1,6 +1,6 @@
 {
     "server": {
-        "name": "simple",
+        "name": "rest",
         "ipv4": {
             "address": "127.0.0.1",
             "port": 8080
@@ -10,6 +10,6 @@
         "max_header_size": 32768
     },
     "template": {
-        "sub_path": "examples/simple/templates"
+        "sub_path": ""
     }
 }

@@ -1,6 +1,7 @@
 const std = @import("std");
 const http = std.http;
 const trie = @import("trie.zig");
+const Uri = std.Uri;
 
 pub const Entry = trie.Entry;
 
