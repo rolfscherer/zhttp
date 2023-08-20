@@ -52,39 +52,16 @@ fn serveTemplates(ctx: *Context, response: *http.Server.Response) !void {
     }
 }
 
-fn hello(ctx: *Context, response: *Server.Response, name: []const u8) !void {
-    ctx.counter += 1;
-
-    std.log.info("Hello {s}", .{name});
-    var arrayList: std.ArrayList(u8) = std.ArrayList(u8).init(response.allocator);
-    response.status = .ok;
-    if (response.request.headers.contains("connection")) {
-        try response.headers.append("connection", "keep-alive");
-    }
-
-    try arrayList.appendSlice("<head></head><body><h1>Hello ");
-    try arrayList.appendSlice(name);
-
-    try arrayList.appendSlice("</h1><p>Zig is great</p><body>");
-
-    response.transfer_encoding = .{ .content_length = arrayList.items.len };
-    try response.headers.append("content-type", "text/html");
-
-    try response.do();
-    try response.writeAll(arrayList.items);
-    try response.finish();
-}
-
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 12 }){};
     const allocator = gpa.allocator();
 
-    fs = FileServer.init(allocator, "examples/static", null);
+    fs = FileServer.init(allocator, "examples/simple/static", null);
     if (fs) |*s| {
         defer s.deinit();
     }
 
-    ts = TemplateServer.init(allocator, "examples/templates");
+    ts = TemplateServer.init(allocator, "examples/simple/templates");
     if (ts) |*s| {
         defer s.deinit();
     }
@@ -98,7 +75,6 @@ pub fn main() !void {
         "examples/simple/config.json",
         &context,
         comptime router.router(*Context, &.{
-            builder.get("/hello/:name", hello),
             builder.get("/assets/*", serveFiles),
             builder.get("/css/*", serveFiles),
             builder.get("/js/*", serveFiles),
