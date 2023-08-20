@@ -3,20 +3,29 @@ const json = std.json;
 const mem = std.mem;
 
 const Allocator = mem.Allocator;
-const ParseConfig = json.Parsed(Config);
+const ParsedConfig = json.Parsed(Config);
 
-pub const Config = struct { server: struct { name: []const u8, ipv4: struct {
-    address: []const u8,
-    port: u16,
-} }, http: struct {
-    max_header_size: u16,
-}, template: struct {
-    sub_path: []const u8 = "",
-} };
+pub const Config = struct {
+
+    // zig fmt: off
+    server: struct { 
+        name: []const u8, ipv4: struct {
+            address: []const u8,
+            port: u16,
+        } 
+    }, 
+    http: struct {
+        max_header_size: u16,
+    }, 
+    template: struct {
+        sub_path: []const u8 = "",
+    } 
+    // zig fmt: on
+};
 
 pub const ServerConfig = struct {
     allocator: Allocator,
-    config: ParseConfig = undefined,
+    config: ParsedConfig = undefined,
 
     const Self = @This();
 
