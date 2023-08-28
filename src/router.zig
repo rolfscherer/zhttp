@@ -110,9 +110,22 @@ pub fn wrap(comptime Context: type, comptime handler: anytype) Route(Context).Ha
         return X.wrapped;
     }
 
-    const ArgType = function_info.params[2].type.?;
+    const arg_type = function_info.params[2].type.?;
+    const type_info = @typeInfo(arg_type);
 
-    if (ArgType == []const u8) {
+    if (type_info == .Int or type_info == .ComptimeInt) {
+        // There 3th parameter is a integer
+        const X = struct {
+            fn wrapped(ctx: Context, res: *http.Server.Response, params: []const trie.Entry) anyerror!void {
+                std.debug.assert(params.len == 1);
+                const val = try std.fmt.parseInt(arg_type, params[0].value, 10);
+                return handler(ctx, res, val);
+            }
+        };
+        return X.wrapped;
+    }
+
+    if (arg_type == []const u8) {
         // There 3th parameter is a string
         const X = struct {
             fn wrapped(ctx: Context, res: *http.Server.Response, params: []const trie.Entry) anyerror!void {
@@ -123,7 +136,7 @@ pub fn wrap(comptime Context: type, comptime handler: anytype) Route(Context).Ha
         return X.wrapped;
     }
 
-    if (@typeInfo(ArgType) == .Struct) {
+    if (@typeInfo(arg_type) == .Struct) {
         // There 3th parameter is a struct
         const X = struct {
             fn wrapped(ctx: Context, res: *http.Server.Response, params: []const trie.Entry) anyerror!void {
@@ -152,7 +165,7 @@ pub fn wrap(comptime Context: type, comptime handler: anytype) Route(Context).Ha
         return X.wrapped;
     }
 
-    @compileError("Unsupported type `" ++ @typeName(ArgType) ++ "`. Must be `[]const u8` or a struct whose fields are `[]const u8`.");
+    @compileError("Unsupported type `" ++ @typeName(arg_type) ++ "`. Must be `[]const u8` or a struct whose fields are `[]const u8`.");
 }
 
 fn assertIsType(comptime text: []const u8, comptime expected: type, comptime actual: type) void {
