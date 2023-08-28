@@ -8,9 +8,10 @@ const router = zhttp.router;
 const http_server = zhttp.http_server;
 const Context = @import("context.zig").Context;
 const rc = @import("rest_struct.zig");
+const customer = @import("customer.zig");
 
 fn hello(ctx: *Context, response: *Server.Response, name: []const u8) !void {
-    ctx.counter += 1;
+    _ = ctx;
 
     var arrayList: std.ArrayList(u8) = std.ArrayList(u8).init(response.allocator);
     response.status = .ok;
@@ -34,7 +35,7 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 12 }){};
     const allocator = gpa.allocator();
 
-    var context: Context = .{ .allocator = allocator, .counter = 0 };
+    var context: Context = .{ .allocator = allocator, .customers = customer.Customers.init(allocator) };
 
     var server = http_server.HttpServer.init(allocator);
     errdefer server.killServer();
@@ -47,6 +48,10 @@ pub fn main() !void {
         comptime router.router(*Context, &.{
             builder.get("/hello/:name", hello),
             builder.get("/api/posts/:subject/messages/:text", rc.messages),
+            builder.post("/api/customers", customer.createCustomer),
+            builder.get("/api/customers", customer.getCustomers),
+            builder.get("/api/customers/:id", customer.getCustomer),
+            builder.delete("/api/customers/:id", customer.deleteCustomer),
         }),
     );
 }

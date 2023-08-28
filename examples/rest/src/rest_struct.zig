@@ -10,7 +10,6 @@ pub fn messages(ctx: *Context, response: *Server.Response, message: Message) !vo
     var text = try std.Uri.unescapeString(ctx.allocator, message.text);
     defer ctx.allocator.free(text);
     std.log.info("{s}, {s}", .{ message.subject, text });
-    ctx.counter += 1;
 
     var arrayList: std.ArrayList(u8) = std.ArrayList(u8).init(response.allocator);
     response.status = .ok;
